@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7f5f1">
+<title>Deep Talk — ไพ่คำถาม</title>
+<style>
+:root{--bg:#f7f5f1;--paper:#fffefa;--ink:#292827;--muted:#85817c;--line:#e7e2dc}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,520px);min-height:100vh;margin:auto;padding:12px 20px 24px;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 0 18px}
+.wordmark{font-size:13px;letter-spacing:.17em;font-weight:650}
+.small-btn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;width:40px;height:40px;display:grid;place-items:center;font-size:18px}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.active{display:flex}
+.home{text-align:center;align-items:center;justify-content:center;gap:18px;padding:10px 0 28px}
+.symbol{width:150px;height:170px;display:grid;place-items:center;position:relative}
+.mini-card{position:absolute;width:85px;height:120px;border:1px solid var(--ink);border-radius:13px;background:var(--paper);box-shadow:0 7px 18px #2928270c}
+.mini-card:nth-child(1){transform:rotate(-16deg) translate(-12px,2px)}
+.mini-card:nth-child(2){transform:rotate(-6deg) translate(-3px,-1px)}
+.mini-card:nth-child(3){transform:rotate(7deg) translate(8px,3px);display:grid;place-items:center;font-size:34px}
+h1{margin:0;font-size:clamp(34px,10vw,46px);font-weight:500;letter-spacing:-.04em}
+.subtitle{color:var(--muted);line-height:1.8;font-size:14px;max-width:280px;margin:0}
+.count-pill{font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.primary{background:var(--ink);color:white;border:0;border-radius:99px;min-height:52px;padding:0 30px;width:min(100%,290px)}
+.secondary{background:transparent;border:1px solid var(--ink);color:var(--ink);border-radius:99px;min-height:48px;padding:0 24px;width:min(100%,290px)}
+.deck-top{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px;padding:6px 0 18px}
+.progress{height:3px;background:#e8e3dd;border-radius:9px;overflow:hidden;margin-bottom:22px}
+.progress>div{height:100%;background:var(--ink);width:0;transition:width .25s}
+.card-wrap{flex:1;min-height:390px;display:grid;place-items:center;position:relative;touch-action:pan-y}
+.card-shadow{position:absolute;width:100%;max-width:360px;height:min(57vh,440px);min-height:350px;border-radius:25px;background:#eae6e0;transform:rotate(3deg) translate(3px,3px)}
+.card-shadow.two{background:#f0ede8;transform:rotate(-3deg) translate(-3px,0)}
+.question-card{z-index:1;width:100%;max-width:360px;height:min(57vh,440px);min-height:350px;border:1px solid #e2ddd6;border-radius:25px;background:var(--paper);box-shadow:0 16px 38px #2928270a;padding:30px 25px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;user-select:none}
+.star{font-size:23px;color:#77716b}
+.question{font-size:clamp(20px,5.4vw,25px);font-weight:450;line-height:1.75;white-space:pre-line;align-self:center;overflow:auto;max-height:78%;padding:4px 0}
+.heart{font-size:17px;color:#6c625f}
+.hint{color:var(--muted);font-size:12px;text-align:center;padding:17px 0 6px;line-height:1.8}
+.controls{display:flex;justify-content:center;align-items:center;gap:22px;padding-top:8px}
+.arrow{border:0;background:transparent;color:#77716b;font-size:25px;width:48px;height:42px}
+.actions{display:flex;gap:10px;justify-content:center;padding-top:12px;flex-wrap:wrap}
+.actions button{border:1px solid var(--line);border-radius:99px;background:transparent;padding:10px 15px;color:var(--ink);font-size:13px}
+.finish{align-items:center;justify-content:center;text-align:center;gap:20px;padding:20px 0}
+.finish-art{font-size:64px}
+.finish h2{font-size:30px;font-weight:500;margin:0}
+.finish p{color:var(--muted);font-size:14px;line-height:1.9;max-width:290px;margin:0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#292827;color:white;padding:12px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.list-panel{position:fixed;inset:0;background:var(--bg);z-index:5;padding:12px 20px 24px;overflow:auto;display:none}
+.list-panel.open{display:block}
+.list-head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);padding:12px 0}
+.list-head h2{font-size:22px;font-weight:500;margin:0}
+.q-list{list-style:none;margin:0;padding:0}
+.q-list li{display:flex;gap:14px;border-bottom:1px solid var(--line);padding:15px 0;font-size:14px;line-height:1.7}
+.q-num{color:var(--muted);min-width:28px}
+.list-note{color:var(--muted);font-size:12px;line-height:1.7}
+@media(max-height:700px){.card-wrap{min-height:330px}.question-card,.card-shadow{height:52vh;min-height:320px}.home{gap:12px}.symbol{height:135px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="wordmark">DEEP TALK <span style="color:#aaa39b">/ 120</span></div>
+  <button class="small-btn" id="homeBtn" aria-label="กลับหน้าแรก">⌂</button>
+</header>
+
+<section class="screen home active" id="homeScreen">
+  <div class="symbol" aria-hidden="true">
+    <div class="mini-card"></div>
+    <div class="mini-card"></div>
+    <div class="mini-card">✳</div>
+  </div>
+  <h1>Deep Talk</h1>
+  <div class="count-pill">120 QUESTIONS · ONE DECK</div>
+  <p class="subtitle">คำถามเล็ก ๆ ที่อาจพาเรา<br>ไปไกลกว่าที่คิด</p>
+  <button class="primary" id="startBtn">เริ่มเปิดไพ่ ↗</button>
+  <p class="subtitle" style="font-size:12px">สับไพ่ · ปัดการ์ด · คุยกัน · วนใหม่ได้</p>
+</section>
+
+<section class="screen" id="deckScreen">
+  <div class="deck-top">
+    <span id="progressLabel">คำถาม 1 / 120</span>
+    <button class="small-btn" id="listBtn" aria-label="ดูคำถามทั้งหมด">☷</button>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+  <div class="card-wrap" id="cardWrap">
+    <div class="card-shadow two"></div>
+    <div class="card-shadow"></div>
+    <article class="question-card" aria-live="polite">
+      <div class="star">✳</div>
+      <div class="question" id="questionText"></div>
+      <div class="heart">♥</div>
+    </article>
+  </div>
+  <div class="controls">
+    <button class="arrow" id="prevBtn" aria-label="คำถามก่อนหน้า">←</button>
+    <span style="font-size:12px;color:var(--muted)">ปัดซ้ายหรือขวา</span>
+    <button class="arrow" id="nextBtn" aria-label="คำถามถัดไป">→</button>
+  </div>
+  <div class="hint">ตอบเท่าที่สบายใจ ไม่มีคำตอบถูกหรือผิด ♡</div>
+  <div class="actions">
+    <button id="shuffleBtn">⤨ สับไพ่ใหม่</button>
+    <button id="restartBtn">↻ เริ่มสำรับใหม่</button>
+  </div>
+</section>
+
+<section class="screen finish" id="finishScreen">
+  <div class="finish-art">☾ ♡</div>
+  <h2>หมดสำรับแล้ว!</h2>
+  <p>คุณเปิดครบทุกคำถามแล้ว<br>ขอบคุณที่แบ่งปันเรื่องราวกันนะ</p>
+  <button class="primary" id="againBtn">↻ เริ่มใหม่อีกครั้ง</button>
+  <button class="secondary" id="finishHomeBtn">กลับหน้าแรก</button>
+</section>
+</div>
+
+<div class="list-panel" id="listPanel">
+  <div class="list-head">
+    <h2>คำถามในสำรับ</h2>
+    <button class="small-btn" id="closeListBtn" aria-label="ปิด">×</button>
+  </div>
+  <p class="list-note">แตะคำถามเพื่อเปิดใบนั้นได้เลย</p>
+  <ol class="q-list" id="questionList"></ol>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const questions = [
+"ถ้าต้องอธิบายตัวเองให้คนแปลกหน้าฟังโดยห้ามพูดถึงหน้าตา นิสัย หรือสิ่งที่ชอบ จะอธิบายว่าอะไร?",
+"คิดว่าตัวเองเป็นคนแบบไหน และคนอื่นมักเข้าใจเราผิดเรื่องอะไร?",
+"มีด้านไหนของตัวเองที่ไม่ค่อยกล้าให้ใครเห็น เพราะกลัวว่าเขาจะมองเราเปลี่ยนไป?",
+"ถ้าไม่มีใครตัดสินเราเลย เราอยากใช้ชีวิตหรือแสดงตัวตนแบบไหน?",
+"มีอะไรในตัวเองที่เมื่อก่อนเกลียด แต่ตอนนี้เริ่มยอมรับมันได้แล้ว?",
+"คิดว่าตัวเองเป็นคนที่มีความสุขจริง ๆ หรือแค่เก่งในการทำให้คนอื่นคิดว่ามีความสุข?",
+"อะไรคือสิ่งที่เราอยากให้คนอื่นเข้าใจเกี่ยวกับเรามากที่สุด?",
+"เวลาอยู่คนเดียว เราชอบตัวเองในเวอร์ชันนั้นไหม เพราะอะไร?",
+"คิดว่าตัวเองเปลี่ยนไปจากเมื่อก่อนมากที่สุดในเรื่องอะไร?",
+"มีคำพูดอะไรที่คนอื่นเคยพูดเกี่ยวกับเราแล้วเราจำจนถึงทุกวันนี้?",
+"ถ้าคนรอบตัวต้องพูดถึงเราตามความจริงทั้งหมด คิดว่าเรื่องไหนจะทำให้เราเจ็บที่สุด?",
+"ตอนนี้เรากำลังใช้ชีวิตเพื่อตัวเอง หรือพยายามเป็นคนที่คนอื่นอยากให้เราเป็น?",
+"มีเหตุการณ์ไหนที่เปลี่ยนวิธีมองโลกของเราไปตลอดกาล?",
+"ถ้าย้อนกลับไปหาตัวเองตอนเด็กได้ อยากกอดหรือบอกอะไรกับตัวเอง?",
+"มีเรื่องอะไรที่ตอนนั้นคิดว่าตัวเองไม่มีวันผ่านไปได้ แต่สุดท้ายก็ผ่านมาแล้ว?",
+"เคยเสียใจเรื่องไหนมากที่สุดเพราะไม่ได้ทำ มากกว่าเพราะทำไปแล้ว?",
+"มีช่วงเวลาไหนที่คิดถึงมาก แต่รู้ว่ากลับไปเป็นแบบนั้นไม่ได้อีกแล้ว?",
+"เคยทำให้ใครผิดหวังจนยังรู้สึกผิดอยู่ไหม และถ้าย้อนกลับไปได้จะทำอะไรต่างออกไป?",
+"บทเรียนที่เจ็บที่สุดที่ชีวิตเคยสอนเราคืออะไร?",
+"เคยมีใครเข้ามาในชีวิตเพียงช่วงสั้น ๆ แต่ส่งผลต่อเรามากไหม?",
+"มีความทรงจำไหนที่อยากลืม แต่ก็รู้ว่ามันทำให้เราเป็นเราในวันนี้?",
+"ถ้าสามารถกลับไปแก้ไขเหตุการณ์ในอดีตได้หนึ่งเรื่อง จะเลือกเรื่องไหน?",
+"เคยมีช่วงไหนที่รู้สึกโดดเดี่ยวที่สุด ทั้งที่มีคนอยู่รอบตัวเต็มไปหมดไหม?",
+"เหตุการณ์ไหนทำให้เรารู้ว่า ตัวเองเข้มแข็งกว่าที่เคยคิด?",
+"ความกลัวที่ลึกที่สุดของเราเกี่ยวกับชีวิตคืออะไร?",
+"กลัวการถูกทิ้ง การถูกลืม หรือการไม่เคยสำคัญกับใครมากกว่ากัน?",
+"มีเรื่องไหนที่เราบอกคนอื่นว่าไม่เป็นไร ทั้งที่จริง ๆ ยังรู้สึกอยู่?",
+"เวลาเสียใจ เราอยากให้คนเข้ามาปลอบ หรืออยากให้เขาสังเกตเห็นเองโดยไม่ต้องพูด?",
+"อะไรทำให้เรารู้สึกว่าตัวเองไม่ดีพอ?",
+"เคยผลักใครออกไปทั้งที่จริง ๆ อยากให้เขาอยู่ไหม เพราะอะไร?",
+"ถ้าต้องเผชิญหน้ากับความจริงหนึ่งเรื่องที่หลีกเลี่ยงมาตลอด คิดว่าจะเป็นเรื่องอะไร?",
+"เราให้อภัยคนอื่นง่ายกว่าให้อภัยตัวเองหรือเปล่า?",
+"มีความรู้สึกอะไรที่เราไม่รู้ว่าจะอธิบายออกมาเป็นคำพูดอย่างไร?",
+"ถ้าคนที่เรารักเห็นด้านที่แย่ที่สุดของเรา คิดว่าเขาจะยังรักเราเหมือนเดิมไหม?",
+"เราเคยทำร้ายตัวเองทางความคิดด้วยการเปรียบเทียบตัวเองกับใครหรือเปล่า?",
+"อะไรคือสิ่งที่เราต้องการมากที่สุดในวันที่รู้สึกว่าตัวเองไม่ไหวแล้ว?",
+"สำหรับเรา ความรักที่ดีควรทำให้เรารู้สึกอย่างไร?",
+"คิดว่าการรักใครสักคนมาก ๆ เพียงอย่างเดียวเพียงพอที่จะทำให้ความสัมพันธ์อยู่รอดไหม?",
+"อะไรเจ็บกว่ากัน ระหว่างคนที่รักเราแต่ไปด้วยกันไม่ได้ กับคนที่เราอยากอยู่ด้วยแต่เขาไม่ได้รักเรา?",
+"ถ้าคนรักเปลี่ยนไปจากวันที่เราตกหลุมรัก เรายังจะรักเขาได้ไหม?",
+"สำหรับเรา การนอกใจเริ่มต้นตั้งแต่จุดไหน?",
+"มีอะไรที่ให้อภัยได้ในความรัก แต่ไม่มีวันลืมไหม?",
+"ระหว่างการถูกรักอย่างมากกับการถูกรักอย่างเข้าใจ เราเลือกอะไร?",
+"ถ้าต้องเลือกระหว่างความสัมพันธ์ที่มั่นคงแต่ไม่ตื่นเต้น กับความสัมพันธ์ที่เข้มข้นแต่ไม่แน่นอน จะเลือกแบบไหน?",
+"คิดว่าคนเราสามารถรักคนสองคนในเวลาเดียวกันได้จริงไหม?",
+"อะไรคือเส้นแบ่งระหว่างการพยายามรักษาความสัมพันธ์กับการฝืนอยู่ต่อ?",
+"ถ้าคนที่เรารักไม่สามารถให้สิ่งที่เราต้องการได้เลย เรายังควรอยู่ไหม?",
+"อยากให้คนรักจดจำอะไรเกี่ยวกับเรามากที่สุด แม้วันหนึ่งจะไม่ได้อยู่ด้วยกันแล้ว?",
+"สำหรับเรา เพื่อนแท้ต้องมีคุณสมบัติอะไรบ้าง?",
+"เคยรู้สึกเป็นคนนอกในกลุ่มเพื่อนของตัวเองไหม?",
+"อะไรทำให้เราหมดความเชื่อใจใครสักคนได้ทันที?",
+"ถ้าเพื่อนสนิททำสิ่งที่ขัดกับคุณค่าที่เราเชื่อ เราจะยังคบเขาเหมือนเดิมไหม?",
+"เราเคยอิจฉาเพื่อนตัวเองไหม และรู้สึกอย่างไรกับความรู้สึกนั้น?",
+"ถ้ารู้ว่าเพื่อนคนหนึ่งพูดถึงเราในทางไม่ดีลับหลัง เราจะเผชิญหน้าหรือค่อย ๆ ถอยออกมา?",
+"ระหว่างเพื่อนที่อยู่ด้วยกันมานานกับเพื่อนที่เข้าใจเรามากกว่า เราให้ความสำคัญกับใครมากกว่ากัน?",
+"คิดว่าอะไรทำให้มิตรภาพบางอย่างค่อย ๆ จางหายไป แม้ไม่มีใครทะเลาะกัน?",
+"มีเรื่องอะไรที่อยากขอบคุณเพื่อนในกลุ่มนี้ แต่ไม่เคยพูดออกไปไหม?",
+"ถ้าวันหนึ่งเราไม่ประสบความสำเร็จเท่าเพื่อน คิดว่าความรู้สึกที่มีต่อเพื่อนจะเปลี่ยนไปไหม?",
+"เคยรักษามิตรภาพไว้เพียงเพราะกลัวการเริ่มต้นใหม่หรือเปล่า?",
+"ถ้าวันหนึ่งกลุ่มเพื่อนนี้แยกย้ายกันไป สิ่งไหนที่เราจะคิดถึงมากที่สุด?",
+"สิ่งสำคัญที่สุดที่ครอบครัวสอนเราคืออะไร และมีอะไรที่เราไม่อยากส่งต่อให้คนรุ่นต่อไป?",
+"คิดว่าครอบครัวเข้าใจตัวตนที่แท้จริงของเรามากแค่ไหน?",
+"มีเรื่องไหนที่อยากบอกครอบครัว แต่ไม่รู้ว่าจะเริ่มต้นอย่างไร?",
+"ถ้าโตขึ้นแล้วมีครอบครัวของตัวเอง เราอยากสร้างบรรยากาศแบบไหนในบ้าน?",
+"เคยรู้สึกว่าต้องโตเป็นผู้ใหญ่เร็วกว่าที่ควรไหม?",
+"เราอยากได้รับความรักแบบไหนจากคนในครอบครัวมากที่สุด?",
+"มีความคาดหวังอะไรจากครอบครัวที่ทำให้เรากดดันหรือเปล่า?",
+"ถ้าสามารถใช้เวลากับสมาชิกครอบครัวคนหนึ่งได้อีกหนึ่งวันเต็ม ๆ จะเลือกใครและอยากทำอะไร?",
+"อะไรคือสิ่งที่เราเพิ่งเข้าใจเกี่ยวกับพ่อแม่เมื่อโตขึ้น?",
+"ถ้าในอนาคตเราไม่ได้เป็นอย่างที่ครอบครัวคาดหวัง เราจะยอมรับตัวเองได้ไหม?",
+"คิดว่าการเป็นลูกที่ดีจำเป็นต้องทำให้ครอบครัวภูมิใจตลอดเวลาหรือเปล่า?",
+"ถ้าวันหนึ่งเราออกจากบ้านไปใช้ชีวิตของตัวเอง สิ่งไหนจากบ้านที่จะคิดถึงที่สุด?",
+"สำหรับเรา เงินจำนวนเท่าไหร่ถึงจะเรียกว่ามีเงินพอใช้ในชีวิต?",
+"ถ้าต้องเลือกระหว่างงานที่รักแต่รายได้ไม่แน่นอน กับงานที่ไม่ชอบแต่มั่นคง จะเลือกอะไร?",
+"คิดว่าความจนทำให้ความสัมพันธ์ระหว่างคนเปลี่ยนไปได้มากแค่ไหน?",
+"ถ้าพรุ่งนี้มีเงินเข้าบัญชี 10 ล้านบาท สิ่งแรกที่จะทำคืออะไร?",
+"เรามองคนที่มีฐานะดีกว่าเราด้วยความรู้สึกแบบไหน?",
+"คิดว่าการมีเงินมากทำให้คนมีความสุขขึ้นจริงไหม หรือแค่ช่วยลดความทุกข์บางอย่าง?",
+"ถ้าคนรักมีหนี้สินจำนวนมาก เราจะพร้อมสร้างอนาคตร่วมกับเขาไหม?",
+"สำหรับเรา การยืมเงินเพื่อนแล้วไม่คืนทำลายมิตรภาพมากแค่ไหน?",
+"ยอมทำงานที่ขัดกับความรู้สึกของตัวเองเพื่อเงินได้ถึงระดับไหน?",
+"คิดว่าความสำเร็จควรวัดจากเงิน ตำแหน่ง อิสระ หรือความสุข?",
+"ถ้าต้องเริ่มต้นชีวิตใหม่โดยไม่มีเงินและไม่มีคอนเนกชัน เราคิดว่าตัวเองจะเริ่มจากอะไร?",
+"อะไรน่ากลัวกว่ากัน ระหว่างการไม่มีเงินใช้กับการมีเงินมากแต่ไม่มีเวลาใช้ชีวิต?",
+"ถ้าไม่ต้องกังวลเรื่องเงิน ความคาดหวังของใคร หรือความล้มเหลว เราอยากใช้ชีวิตแบบไหน?",
+"มีความฝันอะไรที่เลิกพูดถึงไปแล้ว ทั้งที่ลึก ๆ ยังอยากทำอยู่?",
+"กลัวความล้มเหลว หรือกลัวว่าตัวเองจะไม่มีวันรู้ว่าทำได้มากแค่ไหนมากกว่ากัน?",
+"ถ้าได้เจอตัวเองในอีก 10 ปีข้างหน้า อยากถามอะไรเป็นคำถามแรก?",
+"เราจะยอมเสียสละอะไรได้บ้างเพื่อเป้าหมายของตัวเอง และอะไรที่ไม่มีวันยอมเสีย?",
+"คิดว่าชีวิตที่ประสบความสำเร็จของเราหน้าตาเป็นอย่างไร?",
+"ถ้าสิ่งที่เราพยายามมาตลอดไม่สำเร็จ เราจะเริ่มต้นใหม่ได้ไหม?",
+"อยากให้คนจดจำเราในฐานะคนแบบไหน?",
+"มีอะไรที่อยากทำก่อนอายุ 30 ปีมากที่สุด?",
+"ถ้าต้องเลือกหนึ่งอย่างระหว่างชีวิตที่ปลอดภัยกับชีวิตที่เต็มไปด้วยประสบการณ์ใหม่ ๆ จะเลือกอะไร?",
+"คิดว่าเราเป็นคนที่ลงมือทำความฝัน หรือเป็นคนที่คิดถึงมันมากกว่ากัน?",
+"ถ้าวันนี้เป็นจุดเริ่มต้นของชีวิตบทใหม่ เราอยากเปลี่ยนอะไรเป็นอย่างแรก?",
+"คิดว่าคนคนหนึ่งเป็นคนดีได้ไหม แม้จะเคยทำเรื่องเลวร้ายมาก่อน?",
+"ถ้าการพูดความจริงจะทำให้คนที่รักเราเจ็บปวด เราควรพูดไหม?",
+"การให้อภัยจำเป็นต้องกลับไปสนิทกับคนที่ทำร้ายเราหรือเปล่า?",
+"คิดว่าคนเราเปลี่ยนแปลงตัวเองได้จริง หรือแค่เรียนรู้ที่จะซ่อนด้านเดิมให้เก่งขึ้น?",
+"ถ้าการทำสิ่งที่ถูกต้องทำให้เราเสียประโยชน์ เราจะยังทำอยู่ไหม?",
+"มีสถานการณ์ไหนที่คิดว่าการโกหกเป็นสิ่งที่ยอมรับได้?",
+"คิดว่าคนเราควรได้รับโอกาสครั้งที่สองเสมอไหม?",
+"ระหว่างเจตนาที่ดีแต่ผลลัพธ์แย่ กับเจตนาไม่ดีแต่ผลลัพธ์ดี เราให้ความสำคัญกับอะไร?",
+"ถ้าทุกคนบนโลกคิดเหมือนเรา โลกจะดีขึ้นหรือแย่ลง?",
+"เราเชื่อว่าแต่ละคนกำหนดชีวิตตัวเองได้มากแค่ไหน เมื่อเทียบกับโชคและสภาพแวดล้อม?",
+"คิดว่าการเลือกไม่ยุ่งกับปัญหาของคนอื่นเป็นความเป็นกลาง หรือเป็นการเลือกข้างแบบหนึ่ง?",
+"มีความเชื่ออะไรที่เราเคยมั่นใจมาก แต่เมื่อโตขึ้นกลับเปลี่ยนใจ?",
+"ช่วงเวลาไหนที่เรารู้สึกว่าตัวเองมีชีวิตอยู่จริง ๆ ไม่ใช่แค่ใช้ชีวิตไปวัน ๆ?",
+"อะไรคือความสุขเล็ก ๆ ที่ช่วยให้เราผ่านวันที่แย่มาได้?",
+"ถ้ารู้ว่าตัวเองเหลือเวลาอีกหนึ่งปี จะใช้ชีวิตต่างจากตอนนี้อย่างไร?",
+"คิดว่าคนเราจำเป็นต้องมีเป้าหมายใหญ่ในชีวิตไหม?",
+"อะไรสำคัญกว่ากัน ระหว่างการมีความสุขกับการรู้สึกว่าชีวิตมีความหมาย?",
+"ถ้าไม่มีใครมองเห็นหรือรับรู้ความสำเร็จของเรา เรายังอยากทำมันอยู่ไหม?",
+"มีอะไรในชีวิตที่เราเพิ่งรู้ว่ามีค่าก็ตอนเกือบเสียมันไป?",
+"คิดว่าตัวเองกำลังรอให้ชีวิตเริ่มต้นในวันหนึ่ง ทั้งที่จริง ๆ มันเริ่มต้นไปแล้วหรือเปล่า?",
+"ถ้าสามารถลบความเสียใจหนึ่งเรื่องออกจากชีวิตได้ แต่ต้องเสียบทเรียนที่ได้จากมันไปด้วย จะยอมไหม?",
+"อะไรคือสิ่งที่เรายังไม่กล้าทำเพราะคิดว่ายังมีเวลาอีกเยอะ?",
+"ถ้าคนที่รู้จักเราทุกคนลืมเราไปหมด เราคิดว่าอะไรจะยังคงเป็นตัวเราอยู่?",
+"หลังจากคุยกันมาถึงตรงนี้ มีคำถามอะไรที่อยากถามตัวเองหรือเพื่อน แต่ไม่เคยกล้าถามมาก่อน?"
+];
+
+let order=questions.map((_,i)=>i), current=0;
+const $=id=>document.getElementById(id);
+const screens=["homeScreen","deckScreen","finishScreen"];
+
+function showScreen(id){
+  screens.forEach(s=>$(s).classList.toggle("active",s===id));
+  $("listPanel").classList.remove("open");
+}
+
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+}
+
+function render(){
+  if(current>=order.length){
+    showScreen("finishScreen");
+    return;
+  }
+  $("questionText").textContent=questions[order[current]];
+  $("progressLabel").textContent=`คำถาม ${current+1} / ${order.length}`;
+  $("progressBar").style.width=`${((current+1)/order.length)*100}%`;
+  $("prevBtn").style.opacity=current===0?".3":"1";
+}
+
+function next(){
+  if(current<order.length-1){
+    current++;
+    render();
+  }else{
+    current++;
+    render();
+  }
+}
+
+function previous(){
+  if(current>0){
+    current--;
+    render();
+  }
+}
+
+function newDeck(doShuffle=true){
+  order=questions.map((_,i)=>i);
+  if(doShuffle)shuffle(order);
+  current=0;
+  showScreen("deckScreen");
+  render();
+}
+
+function toast(msg){
+  const t=$("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+function buildList(){
+  $("questionList").innerHTML="";
+  order.forEach((idx,pos)=>{
+    const li=document.createElement("li");
+    const num=document.createElement("span");
+    const q=document.createElement("span");
+    num.className="q-num";
+    num.textContent=String(pos+1).padStart(2,"0");
+    q.textContent=questions[idx];
+    li.append(num,q);
+    li.style.cursor="pointer";
+    li.addEventListener("click",()=>{
+      current=pos;
+      $("listPanel").classList.remove("open");
+      showScreen("deckScreen");
+      render();
+    });
+    $("questionList").appendChild(li);
+  });
+}
+
+$("startBtn").addEventListener("click",()=>newDeck(true));
+$("nextBtn").addEventListener("click",next);
+$("prevBtn").addEventListener("click",previous);
+
+$("shuffleBtn").addEventListener("click",()=>{
+  shuffle(order);
+  current=0;
+  render();
+  toast("สับไพ่เรียบร้อยแล้ว ✨");
+});
+
+$("restartBtn").addEventListener("click",()=>newDeck(false));
+$("againBtn").addEventListener("click",()=>newDeck(true));
+$("homeBtn").addEventListener("click",()=>showScreen("homeScreen"));
+$("finishHomeBtn").addEventListener("click",()=>showScreen("homeScreen"));
+
+$("listBtn").addEventListener("click",()=>{
+  buildList();
+  $("listPanel").classList.add("open");
+});
+
+$("closeListBtn").addEventListener("click",()=>$("listPanel").classList.remove("open"));
+
+let startX=0,startY=0;
+
+$("cardWrap").addEventListener("touchstart",e=>{
+  startX=e.changedTouches[0].clientX;
+  startY=e.changedTouches[0].clientY;
+},{passive:true});
+
+$("cardWrap").addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-startX;
+  const dy=e.changedTouches[0].clientY-startY;
+  if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)){
+    if(dx<0)next();
+    else previous();
+  }
+},{passive:true});
+
+let pointerX=null;
+
+$("cardWrap").addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse")pointerX=e.clientX;
+});
+
+$("cardWrap").addEventListener("pointerup",e=>{
+  if(pointerX!==null){
+    const dx=e.clientX-pointerX;
+    if(Math.abs(dx)>60){
+      if(dx<0)next();
+      else previous();
+    }
+    pointerX=null;
+  }
+});
+
+render();
+</script>
+</body>
+</html>
